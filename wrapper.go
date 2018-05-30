@@ -6,12 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 )
 
 var (
 	Global Logger
 )
+
+var GlobalLevel Level = DEBUG
 
 func init() {
 	Global = NewDefaultLogger(FINE)
@@ -73,6 +76,14 @@ func Stderr(args ...interface{}) {
 	}
 }
 
+func GetGlobalLevel() Level {
+	return GlobalLevel
+}
+
+func SetGlobalLevel(level Level) {
+	GlobalLevel = level
+}
+
 // Compatibility with `log`
 func Stderrf(format string, args ...interface{}) {
 	Global.intLogf(ERROR, format, args...)
@@ -108,53 +119,18 @@ func Logc(lvl Level, closure func() string) {
 	Global.intLogc(lvl, closure)
 }
 
-// Utility for finest log messages (see Debug() for parameter explanation)
-// Wrapper for (*Logger).Finest
-func Finest(arg0 interface{}, args ...interface{}) {
-	const (
-		lvl = FINEST
-	)
-	switch first := arg0.(type) {
-	case string:
-		// Use the string as a format string
-		Global.intLogf(lvl, first, args...)
-	case func() string:
-		// Log the closure (no other arguments used)
-		Global.intLogc(lvl, first)
-	default:
-		// Build a format string so that it will be similar to Sprint
-		Global.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
-	}
-}
-
-// Utility for fine log messages (see Debug() for parameter explanation)
-// Wrapper for (*Logger).Fine
-func Fine(arg0 interface{}, args ...interface{}) {
-	const (
-		lvl = FINE
-	)
-	switch first := arg0.(type) {
-	case string:
-		// Use the string as a format string
-		Global.intLogf(lvl, first, args...)
-	case func() string:
-		// Log the closure (no other arguments used)
-		Global.intLogc(lvl, first)
-	default:
-		// Build a format string so that it will be similar to Sprint
-		Global.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
-	}
-}
-
 // Utility for debug log messages
 // When given a string as the first argument, this behaves like Logf but with the DEBUG log level (e.g. the first argument is interpreted as a format for the latter arguments)
 // When given a closure of type func()string, this logs the string returned by the closure iff it will be logged.  The closure runs at most one time.
 // When given anything else, the log message will be each of the arguments formatted with %v and separated by spaces (ala Sprint).
 // Wrapper for (*Logger).Debug
-func Debug(arg0 interface{}, args ...interface{}) {
+func Debugf(arg0 interface{}, args ...interface{}) {
 	const (
 		lvl = DEBUG
 	)
+	if lvl < GlobalLevel {
+		return
+	}
 	switch first := arg0.(type) {
 	case string:
 		// Use the string as a format string
@@ -166,14 +142,33 @@ func Debug(arg0 interface{}, args ...interface{}) {
 		// Build a format string so that it will be similar to Sprint
 		Global.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
 	}
+}
+
+func Debug(args ...interface{}) {
+	const (
+		lvl = DEBUG
+	)
+	if lvl < GlobalLevel {
+		return
+	}
+	pc, _, lineno, ok := runtime.Caller(1)
+	src := ""
+	if ok {
+		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
+	}
+	msg := fmt.Sprint(args)
+	Global.Log(lvl, src, msg[1:len(msg)-1])
 }
 
 // Utility for trace log messages (see Debug() for parameter explanation)
 // Wrapper for (*Logger).Trace
-func Trace(arg0 interface{}, args ...interface{}) {
+func Tracef(arg0 interface{}, args ...interface{}) {
 	const (
 		lvl = TRACE
 	)
+	if lvl < GlobalLevel {
+		return
+	}
 	switch first := arg0.(type) {
 	case string:
 		// Use the string as a format string
@@ -187,12 +182,31 @@ func Trace(arg0 interface{}, args ...interface{}) {
 	}
 }
 
+func Trace(args ...interface{}) {
+	const (
+		lvl = TRACE
+	)
+	if lvl < GlobalLevel {
+		return
+	}
+	pc, _, lineno, ok := runtime.Caller(1)
+	src := ""
+	if ok {
+		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
+	}
+	msg := fmt.Sprint(args)
+	Global.Log(lvl, src, msg[1:len(msg)-1])
+}
+
 // Utility for info log messages (see Debug() for parameter explanation)
 // Wrapper for (*Logger).Info
-func Info(arg0 interface{}, args ...interface{}) {
+func Infof(arg0 interface{}, args ...interface{}) {
 	const (
 		lvl = INFO
 	)
+	if lvl < GlobalLevel {
+		return
+	}
 	switch first := arg0.(type) {
 	case string:
 		// Use the string as a format string
@@ -204,15 +218,34 @@ func Info(arg0 interface{}, args ...interface{}) {
 		// Build a format string so that it will be similar to Sprint
 		Global.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
 	}
+}
+
+func Info(args ...interface{}) {
+	const (
+		lvl = INFO
+	)
+	if lvl < GlobalLevel {
+		return
+	}
+	pc, _, lineno, ok := runtime.Caller(1)
+	src := ""
+	if ok {
+		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
+	}
+	msg := fmt.Sprint(args)
+	Global.Log(lvl, src, msg[1:len(msg)-1])
 }
 
 // Utility for warn log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
 // These functions will execute a closure exactly once, to build the error message for the return
 // Wrapper for (*Logger).Warn
-func Warn(arg0 interface{}, args ...interface{}) error {
+func Warnf(arg0 interface{}, args ...interface{}) error {
 	const (
 		lvl = WARNING
 	)
+	if lvl < GlobalLevel {
+		return nil
+	}
 	switch first := arg0.(type) {
 	case string:
 		// Use the string as a format string
@@ -229,15 +262,34 @@ func Warn(arg0 interface{}, args ...interface{}) error {
 		return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
 	}
 	return nil
+}
+
+func Warn(args ...interface{}) {
+	const (
+		lvl = WARNING
+	)
+	if lvl < GlobalLevel {
+		return
+	}
+	pc, _, lineno, ok := runtime.Caller(1)
+	src := ""
+	if ok {
+		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
+	}
+	msg := fmt.Sprint(args)
+	Global.Log(lvl, src, msg[1:len(msg)-1])
 }
 
 // Utility for error log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
 // These functions will execute a closure exactly once, to build the error message for the return
 // Wrapper for (*Logger).Error
-func Error(arg0 interface{}, args ...interface{}) error {
+func Errorf(arg0 interface{}, args ...interface{}) error {
 	const (
 		lvl = ERROR
 	)
+	if lvl < GlobalLevel {
+		return nil
+	}
 	switch first := arg0.(type) {
 	case string:
 		// Use the string as a format string
@@ -256,13 +308,32 @@ func Error(arg0 interface{}, args ...interface{}) error {
 	return nil
 }
 
+func Error(args ...interface{}) {
+	const (
+		lvl = ERROR
+	)
+	if lvl < GlobalLevel {
+		return
+	}
+	pc, _, lineno, ok := runtime.Caller(1)
+	src := ""
+	if ok {
+		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
+	}
+	msg := fmt.Sprint(args)
+	Global.Log(lvl, src, msg[1:len(msg)-1])
+}
+
 // Utility for critical log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
 // These functions will execute a closure exactly once, to build the error message for the return
 // Wrapper for (*Logger).Critical
-func Critical(arg0 interface{}, args ...interface{}) error {
+func Criticalf(arg0 interface{}, args ...interface{}) error {
 	const (
 		lvl = CRITICAL
 	)
+	if lvl < GlobalLevel {
+		return nil
+	}
 	switch first := arg0.(type) {
 	case string:
 		// Use the string as a format string
@@ -279,4 +350,20 @@ func Critical(arg0 interface{}, args ...interface{}) error {
 		return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
 	}
 	return nil
+}
+
+func Critical(args ...interface{}) {
+	const (
+		lvl = CRITICAL
+	)
+	if lvl < GlobalLevel {
+		return
+	}
+	pc, _, lineno, ok := runtime.Caller(1)
+	src := ""
+	if ok {
+		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
+	}
+	msg := fmt.Sprint(args)
+	Global.Log(lvl, src, msg[1:len(msg)-1])
 }
