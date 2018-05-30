@@ -156,8 +156,7 @@ func Debug(args ...interface{}) {
 	if ok {
 		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
 	}
-	msg := fmt.Sprint(args)
-	Global.Log(lvl, src, msg[1:len(msg)-1])
+	Global.Log(lvl, src, fmt.Sprint(args...))
 }
 
 // Utility for trace log messages (see Debug() for parameter explanation)
@@ -194,8 +193,7 @@ func Trace(args ...interface{}) {
 	if ok {
 		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
 	}
-	msg := fmt.Sprint(args)
-	Global.Log(lvl, src, msg[1:len(msg)-1])
+	Global.Log(lvl, src, fmt.Sprint(args...))
 }
 
 // Utility for info log messages (see Debug() for parameter explanation)
@@ -232,8 +230,7 @@ func Info(args ...interface{}) {
 	if ok {
 		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
 	}
-	msg := fmt.Sprint(args)
-	Global.Log(lvl, src, msg[1:len(msg)-1])
+	Global.Log(lvl, src, fmt.Sprint(args...))
 }
 
 // Utility for warn log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
@@ -276,8 +273,7 @@ func Warn(args ...interface{}) {
 	if ok {
 		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
 	}
-	msg := fmt.Sprint(args)
-	Global.Log(lvl, src, msg[1:len(msg)-1])
+	Global.Log(lvl, src, fmt.Sprint(args...))
 }
 
 // Utility for error log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
@@ -320,8 +316,7 @@ func Error(args ...interface{}) {
 	if ok {
 		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
 	}
-	msg := fmt.Sprint(args)
-	Global.Log(lvl, src, msg[1:len(msg)-1])
+	Global.Log(lvl, src, fmt.Sprint(args...))
 }
 
 // Utility for critical log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
@@ -364,6 +359,5 @@ func Critical(args ...interface{}) {
 	if ok {
 		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
 	}
-	msg := fmt.Sprint(args)
-	Global.Log(lvl, src, msg[1:len(msg)-1])
+	Global.Log(lvl, src, fmt.Sprint(args...))
 }
