@@ -3,9 +3,10 @@ package log4go
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/toolkits/file"
 	"os"
 	"strings"
+
+	"github.com/toolkits/file"
 )
 
 type ConsoleConfig struct {
@@ -32,10 +33,11 @@ type FileConfig struct {
 	// Recommended: "[%D %T] [%C] [%L] (%S) %M"//
 	Pattern string `json:"pattern"`
 
-	Rotate   bool   `json:"rotate"`
-	Maxsize  string `json:"maxsize"`  // \d+[KMG]? Suffixes are in terms of 2**10
-	Maxlines string `json:"maxlines"` //\d+[KMG]? Suffixes are in terms of thousands
-	Daily    bool   `json:"daily"`    //Automatically rotates by day
+	Rotate       bool   `json:"rotate"`
+	Maxsize      string `json:"maxsize"`  // \d+[KMG]? Suffixes are in terms of 2**10
+	Maxlines     string `json:"maxlines"` //\d+[KMG]? Suffixes are in terms of thousands
+	MaxFileCount int    `josn:"maxfilecount"`
+	Daily        bool   `json:"daily"` //Automatically rotates by day
 }
 
 type SocketConfig struct {

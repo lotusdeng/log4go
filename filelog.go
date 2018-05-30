@@ -31,6 +31,8 @@ type FileLogWriter struct {
 	maxsize         int
 	maxsize_cursize int
 
+	maxfilecount int
+
 	// Rotate daily
 	daily          bool
 	daily_opendate int
@@ -66,7 +68,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 		filename:  fname,
 		format:    "[%D %T] [%L] (%S) %M",
 		rotate:    rotate,
-		maxbackup: 999,
+		maxbackup: 5,
 	}
 
 	// open the file for the first time
@@ -224,6 +226,13 @@ func (w *FileLogWriter) SetRotateLines(maxlines int) *FileLogWriter {
 func (w *FileLogWriter) SetRotateSize(maxsize int) *FileLogWriter {
 	//fmt.Fprintf(os.Stderr, "FileLogWriter.SetRotateSize: %v\n", maxsize)
 	w.maxsize = maxsize
+	return w
+}
+
+func (w *FileLogWriter) SetMaxfileCount(maxFileCount int) *FileLogWriter {
+	//fmt.Fprintf(os.Stderr, "FileLogWriter.SetRotateSize: %v\n", maxsize)
+	w.maxfilecount = maxFileCount
+	w.maxbackup = maxFileCount
 	return w
 }
 
